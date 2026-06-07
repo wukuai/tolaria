@@ -65,8 +65,11 @@ Concretely:
    (ADR-0056) do not exist on mobile, so the token is the mobile equivalent of
    "your existing git auth".
 
-5. **Mobile-linkable Cargo graph.** Desktop-only plugin crates move to
-   `[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]`.
+5. **Settings types decoupled from AI networking.** The serde types and
+   normalization for `ai_model_providers` live in `ai_model_types` (compiled on
+   every platform), separate from the desktop HTTP client in `ai_models`. This
+   lets the persisted `Settings` (de)serialize on mobile without pulling in the
+   AI model networking stack.
 
 ## Options considered
 
@@ -91,11 +94,20 @@ Concretely:
 - The native filesystem backend (`tauriGitFs.ts`) can only run in the device
   shell, so it is validated by on-device QA; the pure bridge it wraps and the git
   engine are covered by unit tests against Node's `fs` and a mocked transport.
-- **Remaining work before a shippable APK** (tracked, not done in this ADR's
-  change): gate the remaining `#[cfg(desktop)]`-only Rust modules
-  (`app_updater`, MCP/CLI-agent commands) out of the mobile build so it links;
-  run `pnpm tauri android init` to generate `gen/android`; register the Tauri fs
-  plugin and scope the vault directory; build a mobile-friendly token entry UI;
-  and validate on a device/emulator with the Android SDK + NDK.
+- **Build toolchain.** Cross-compiling the Rust backend for Android requires the
+  **Android NDK** — the same way the iOS target requires the Xcode toolchain.
+  The native-crypto dependencies pulled in by the desktop feature set
+  (`reqwest`→`ring`, `sentry`, the updater) compile for Android only with the
+  NDK's clang/sysroot; there is no pure-Rust escape hatch for them. The
+  in-process git engine deliberately needs **no** Rust-side HTTP (it runs in the
+  WebView), so the mobile *product* surface does not depend on these, but a full
+  `cargo build`/APK still needs the NDK to compile the shared crate graph.
+- **Remaining work before a shippable APK** (tracked): obtain the Android SDK +
+  NDK and add the Rust Android targets; run `pnpm tauri android init` to generate
+  `gen/android`; register the Tauri fs plugin and scope the vault directory;
+  build a mobile-friendly token entry UI; decide whether AI/updater/telemetry
+  ship on mobile (and, if not, gate them behind `#[cfg(mobile)]` command stubs as
+  the existing iOS scaffolding already begins to do); and validate on a
+  device/emulator.
 - Tauri v2 mobile remains pre-1.0 for some APIs; instability there is the main
   external risk.

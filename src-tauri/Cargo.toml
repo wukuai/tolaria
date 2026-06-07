@@ -32,23 +32,15 @@ base64 = "0.22"
 regex = "1"
 dirs = "5"
 tauri-plugin-dialog = "2"
+tauri-plugin-updater = "2.10.0"
+tauri-plugin-process = "2.3.1"
 tauri-plugin-opener = "2"
+tauri-plugin-prevent-default = "4.0.4"
 sentry = "0.37"
 uuid = { version = "1", features = ["v4"] }
 tempfile = "3"
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 tauri-plugin-deep-link = "2.4.9"
-
-# Desktop-only plugins. These either have no Android/iOS implementation
-# (single-instance, prevent-default) or are only wired up behind `#[cfg(desktop)]`
-# in `lib.rs` (updater, process). Gating them out of the mobile dependency graph
-# keeps the Android/iOS build linkable. Cargo evaluates these `cfg()` predicates
-# with rustc's built-in target cfgs, so we test on `target_os` rather than
-# Tauri's `desktop`/`mobile` cfgs (which Cargo does not know about).
-[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-tauri-plugin-updater = "2.10.0"
-tauri-plugin-process = "2.3.1"
-tauri-plugin-prevent-default = "4.0.4"
 tauri-plugin-single-instance = { version = "2.4.2", features = ["deep-link"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]

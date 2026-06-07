@@ -20,13 +20,17 @@ architecture and the rationale behind the decisions below, and
 
 ## What is desktop-only (skipped on mobile)
 
-These are gated behind `#[cfg(desktop)]` in `src-tauri/src/lib.rs` and excluded
-from the mobile Cargo dependency graph:
+These are gated behind `#[cfg(desktop)]` (with `#[cfg(mobile)]` command stubs
+where needed):
 
 - the native menu bar, custom window chrome, and window-state persistence
 - the auto-updater and single-instance handling
 - the MCP server bridge and the CLI AI agents (Claude/Codex/Gemini/etc.), which
   rely on spawning local processes
+
+Whether the AI model client, updater, and crash reporting ship on mobile is an
+open product decision (see ADR-0138). Their networking pulls in native-crypto
+crates that require the NDK to cross-compile.
 
 ## Prerequisites
 
@@ -81,8 +85,10 @@ remaining UI piece before sync is end-to-end usable on a phone.
 
 - isomorphic-git's merge support is limited; merge conflicts are surfaced but not
   yet resolvable from the mobile UI.
-- The remaining `#[cfg(desktop)]`-only Rust modules (`app_updater`, the MCP and
-  CLI-agent commands) still need to be gated out of the mobile build so it links
-  cleanly — see ADR-0138 "Remaining work".
+- Building the Rust backend for Android requires the **Android NDK** (just as the
+  iOS target requires Xcode): the desktop feature set's native-crypto
+  dependencies (`reqwest`→`ring`, `sentry`) compile for Android only with the
+  NDK's clang/sysroot. The mobile *product* surface needs no Rust-side HTTP (git
+  runs in the WebView), but the shared crate graph still must compile.
 - The build has not yet been validated end-to-end on a device; it requires the
   Android SDK + NDK, which are not present in CI containers.
