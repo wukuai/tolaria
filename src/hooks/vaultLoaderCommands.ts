@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import { isTauri, mockInvoke } from '../mock-tauri'
+import { runGitCommand } from '../lib/git'
 import type { FolderNode, GitPushResult, VaultEntry, ViewFile } from '../types'
 import type { VaultOption } from '../components/status-bar/types'
 import { normalizeVaultEntries, normalizeViewFiles } from '../utils/vaultMetadataNormalization'
@@ -262,6 +263,6 @@ export async function commitWithPush({ vaultPath, message }: CommitWithPushOptio
     await mockInvoke<string>('git_commit', { message })
     return mockInvoke<GitPushResult>('git_push', {})
   }
-  await invoke<string>('git_commit', { vaultPath, message })
-  return invoke<GitPushResult>('git_push', { vaultPath })
+  await runGitCommand<string | null>('git_commit', { vaultPath, message })
+  return runGitCommand<GitPushResult>('git_push', { vaultPath })
 }

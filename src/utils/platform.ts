@@ -19,6 +19,28 @@ export function isWindows(): boolean {
   return getUserAgent().includes('Windows')
 }
 
+export function isAndroid(): boolean {
+  return getUserAgent().includes('Android')
+}
+
+export function isIOS(): boolean {
+  const userAgent = getUserAgent()
+  return /iPhone|iPad|iPod/.test(userAgent)
+}
+
+export function isMobile(): boolean {
+  return isAndroid() || isIOS()
+}
+
 export function shouldUseCustomWindowChrome(): boolean {
   return isTauri() && (isLinux() || isWindows())
+}
+
+/**
+ * True when running inside the native shell on a mobile device, where the
+ * system `git` binary is unavailable and git sync must run in-process
+ * (isomorphic-git) instead of through the desktop Rust git commands.
+ */
+export function shouldUseInProcessGit(): boolean {
+  return isTauri() && isMobile()
 }

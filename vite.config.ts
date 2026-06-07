@@ -973,6 +973,10 @@ export default defineConfig({
         'src/mock-tauri.ts',
         'src/main.tsx',
         'src/types.ts',
+        // Native-only Tauri filesystem backend for the mobile git engine; it can
+        // only run inside the device shell, so it is verified via on-device QA
+        // rather than unit tests (the pure bridge it wraps is fully covered).
+        'src/lib/git/tauriGitFs.ts',
         'src/hooks/useMcpBridge.ts',
         'src/hooks/useAiAgent.ts',
         'src/utils/ai-chat.ts',

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
-import { invoke } from '@tauri-apps/api/core'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import type { GitPullResult, GitPushResult, GitRemoteStatus, LastCommitInfo, SyncStatus } from '../types'
+import { runGitCommand } from '../lib/git'
 import { trackEvent } from '../lib/telemetry'
 
 const DEFAULT_INTERVAL_MS = 5 * 60_000
@@ -12,8 +12,10 @@ type MaybePromise = void | Promise<void>
 
 type SyncCallbacks = Pick<UseAutoSyncOptions, 'onVaultUpdated' | 'onSyncUpdated' | 'onConflict' | 'onToast'>
 
+// On desktop `runGitCommand` shells out to the Rust git commands; on mobile it
+// serves the same command names from the in-process isomorphic-git engine.
 function tauriCall<T>(cmd: string, args: Record<string, unknown>): Promise<T> {
-  return isTauri() ? invoke<T>(cmd, args) : mockInvoke<T>(cmd, args)
+  return isTauri() ? runGitCommand<T>(cmd, args) : mockInvoke<T>(cmd, args)
 }
 
 interface UseAutoSyncOptions {

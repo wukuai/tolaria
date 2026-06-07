@@ -572,6 +572,32 @@ External vault mutations are any disk writes Tolaria did not just perform throug
 - **Git status popup**: Click sync badge → shows aggregate ahead/behind and a Pull button for the active repository set
 - **Conflict banner**: Inline banner in editor with Keep mine / Keep theirs for conflicted notes
 
+### Platform-routed git (mobile)
+
+The desktop git path crosses Tauri IPC into the Rust `git/` module, which shells
+out to the system `git` binary. Android/iOS have no `git` executable, so the
+frontend funnels git through `src/lib/git/` instead of calling `invoke`
+directly:
+
+- **`runGitCommand(command, args)`** (`src/lib/git/index.ts`): the router. On
+  desktop it forwards to the matching Rust git command via `invoke`; on mobile
+  (`shouldUseInProcessGit()`) it dispatches the same command names to the
+  in-process engine. `useAutoSync` and `commitWithPush` call it instead of
+  `invoke` so the sync loop is platform-agnostic.
+- **`mobileGit.ts`**: the isomorphic-git engine — `isGitRepo`, `initRepo`,
+  `commitAll` (stage-all + skip empty), `getModifiedFiles`, `getLastCommitInfo`,
+  `getRemoteStatus`, `pushToRemote`, `pullFromRemote`, `cloneRepo`,
+  `addRemoteAndFetch`. Each takes an explicit `GitContext` (`fs`, `http`, `dir`,
+  `author`, `onAuth`) so it is testable against Node's `fs`.
+- **`gitErrors.ts` / `gitStatus.ts`**: pure mappers from isomorphic-git error
+  shapes and status-matrix rows onto the shared `GitPushResult` /
+  `GitPullResult` / `ModifiedFile` types.
+- **`gitFs.ts` / `tauriGitFs.ts`**: the filesystem bridge — a pure adapter onto
+  the isomorphic-git filesystem client (`ENOENT` normalization, stat mapping)
+  and the native `@tauri-apps/plugin-fs` backend.
+
+See [ADR-0138](./adr/0138-android-port-and-in-process-git-sync.md).
+
 ## BlockNote Customization
 
 The editor uses [BlockNote](https://www.blocknotejs.org/) for rich text editing, with CodeMirror 6 available as a raw editing alternative.
