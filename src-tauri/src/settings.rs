@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 
-use crate::ai_models::{normalize_ai_model_providers, AiModelProvider};
+use crate::ai_model_types::{normalize_ai_model_providers, AiModelProvider};
 
 const APP_CONFIG_DIR: &str = "com.tolaria.app";
 const LEGACY_APP_CONFIG_DIR: &str = "com.laputa.app";

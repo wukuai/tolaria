@@ -1,5 +1,10 @@
 pub mod ai_agents;
 mod ai_model_tools;
+// Shared AI-provider serde types + normalization. Kept separate from the HTTP
+// client in `ai_models` so the persisted Settings (`ai_model_providers`) can
+// (de)serialize without dragging in the model networking stack — relevant for
+// the mobile build (see ADR-0138), where AI networking is unavailable.
+pub mod ai_model_types;
 pub mod ai_models;
 mod app_icon;
 pub mod app_updater;

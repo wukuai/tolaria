@@ -204,6 +204,19 @@ flowchart TD
     style EXT fill:#f3e5f5,stroke:#9c27b0,color:#000
 ```
 
+### Platform-routed git (desktop vs. mobile)
+
+The diagram above is the **desktop** path: git operations cross Tauri IPC into
+the Rust `git/` module, which shells out to the system `git` CLI. Android/iOS
+have no `git` binary, so the frontend routes git through `src/lib/git/`
+(`runGitCommand`). On desktop it is a transparent pass-through to `invoke`; on
+mobile (`shouldUseInProcessGit()`) it dispatches the **same command names** to an
+in-process [isomorphic-git](https://isomorphic-git.org/) engine
+(`mobileGit.ts`) running against the device filesystem (`tauriGitFs.ts`), with
+results mapped to the same `GitPushResult` / `GitPullResult` shapes. See
+[ADR-0138](./adr/0138-android-port-and-in-process-git-sync.md) and
+[`docs/ANDROID.md`](./ANDROID.md).
+
 ## Four-Panel Layout
 
 ```

@@ -55,6 +55,9 @@
     "active": true,
     "targets": "all",
     "createUpdaterArtifacts": true,
+    "android": {
+      "minSdkVersion": 24
+    },
     "windows": {
       "webviewInstallMode": {
         "type": "downloadBootstrapper"
