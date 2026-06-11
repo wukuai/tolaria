@@ -72,6 +72,22 @@ pnpm tauri android dev
 pnpm tauri android build
 ```
 
+## Release signing
+
+`app/build.gradle.kts` signs release builds when
+`src-tauri/gen/android/app/keystore.properties` (gitignored) exists:
+
+```properties
+keyAlias=<alias>
+keyPassword=<password>
+storeFile=/absolute/path/to/keystore.jks
+storePassword=<password>
+```
+
+Without it, release builds produce an unsigned APK. For local testing you can
+point `storeFile` at the auto-generated `~/.android/debug.keystore`
+(alias `androiddebugkey`, both passwords `android`).
+
 ## Git authentication on mobile
 
 Desktop Tolaria delegates auth to the system git credential helpers
