@@ -407,6 +407,9 @@ fn setup_mobile_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error::
     // The in-process git engine (src/lib/git) reads and writes the vault
     // through the fs plugin on mobile; desktop git runs in Rust instead.
     app.handle().plugin(tauri_plugin_fs::init())?;
+    // Git smart-HTTP endpoints send no CORS headers, so the engine must talk
+    // to remotes through Rust-side HTTP rather than WebView fetch.
+    app.handle().plugin(tauri_plugin_http::init())?;
     setup_mobile_base_dirs(app)?;
     Ok(())
 }

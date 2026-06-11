@@ -88,13 +88,13 @@ export interface MobileGitDeps {
 }
 
 async function buildNativeContext(dir: string): Promise<GitContext> {
-  const [{ createTauriGitFs }, http] = await Promise.all([
+  const [{ createTauriGitFs }, { createTauriGitHttp }] = await Promise.all([
     import('./tauriGitFs'),
-    import('isomorphic-git/http/web').then((module) => module.default),
+    import('./tauriGitHttp'),
   ])
   return {
     fs: createTauriGitFs() as GitContext['fs'],
-    http,
+    http: createTauriGitHttp(),
     dir,
     author: DEFAULT_AUTHOR,
     onAuth: createOnAuth(),

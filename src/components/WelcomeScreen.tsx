@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { OnboardingShell } from './OnboardingShell'
 import { Button } from '@/components/ui/button'
 import tolariaIcon from '@/assets/tolaria-icon.svg'
+import { usesMobileVaultSetup } from '../utils/mobileVaultSetup'
 
 interface WelcomeScreenProps {
   mode: 'welcome' | 'vault-missing'
@@ -447,16 +448,18 @@ export function WelcomeScreen({
             buttonRef={createEmptyActionRef}
           />
 
-          <OptionButton
-            icon={<FolderOpen size={18} style={{ color: 'var(--accent-green)' }} />}
-            iconBg="var(--accent-green-light)"
-            label={presentation.openFolderLabel}
-            description="Point to a folder you already have"
-            onClick={onOpenFolder}
-            disabled={busy}
-            testId="welcome-open-folder"
-            buttonRef={openFolderActionRef}
-          />
+          {!usesMobileVaultSetup() && (
+            <OptionButton
+              icon={<FolderOpen size={18} style={{ color: 'var(--accent-green)' }} />}
+              iconBg="var(--accent-green-light)"
+              label={presentation.openFolderLabel}
+              description="Point to a folder you already have"
+              onClick={onOpenFolder}
+              disabled={busy}
+              testId="welcome-open-folder"
+              buttonRef={openFolderActionRef}
+            />
+          )}
         </div>
 
         {creatingAction === 'template' && (

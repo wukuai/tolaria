@@ -7,6 +7,11 @@ import {
   formatGettingStartedCloneError,
   labelFromPath,
 } from '../utils/gettingStartedVault'
+import {
+  cloneTemplateVaultInProcess,
+  mobileTemplateVaultTarget,
+  usesMobileVaultSetup,
+} from '../utils/mobileVaultSetup'
 
 interface UseGettingStartedCloneOptions {
   onError: (message: string) => void
@@ -22,20 +27,26 @@ export function useGettingStartedClone({
   onSuccess,
 }: UseGettingStartedCloneOptions) {
   return useCallback(async () => {
-    let parentPath: string | null
-    try {
-      parentPath = await pickFolder('Choose a parent folder for the Getting Started vault')
-    } catch (err) {
-      onError(formatFolderPickerActionError('Could not choose a parent folder', err))
-      return
+    let targetPath: string
+    if (usesMobileVaultSetup()) {
+      targetPath = await mobileTemplateVaultTarget()
+    } else {
+      let parentPath: string | null
+      try {
+        parentPath = await pickFolder('Choose a parent folder for the Getting Started vault')
+      } catch (err) {
+        onError(formatFolderPickerActionError('Could not choose a parent folder', err))
+        return
+      }
+
+      if (!parentPath) return
+      targetPath = buildGettingStartedVaultPath(parentPath)
     }
 
-    if (!parentPath) return
-
-    const targetPath = buildGettingStartedVaultPath(parentPath)
-
     try {
-      const vaultPath = await tauriCall<string>('create_getting_started_vault', { targetPath })
+      const vaultPath = usesMobileVaultSetup()
+        ? await cloneTemplateVaultInProcess(targetPath)
+        : await tauriCall<string>('create_getting_started_vault', { targetPath })
       onSuccess(vaultPath, labelFromPath(vaultPath))
     } catch (err) {
       onError(formatGettingStartedCloneError(err))

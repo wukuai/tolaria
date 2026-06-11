@@ -7,6 +7,12 @@ import {
   formatGettingStartedCloneError,
   labelFromPath,
 } from '../utils/gettingStartedVault'
+import {
+  cloneTemplateVaultInProcess,
+  mobileEmptyVaultTarget,
+  mobileTemplateVaultTarget,
+  usesMobileVaultSetup,
+} from '../utils/mobileVaultSetup'
 import { formatFolderPickerActionError, pickFolder } from '../utils/vault-dialog'
 
 type OnboardingState =
@@ -168,7 +174,9 @@ function useTemplateVaultCreation(
     options.setLastTemplatePath(targetPath)
 
     try {
-      const vaultPath = await tauriCall<string>('create_getting_started_vault', { targetPath })
+      const vaultPath = usesMobileVaultSetup()
+        ? await cloneTemplateVaultInProcess(targetPath)
+        : await tauriCall<string>('create_getting_started_vault', { targetPath })
       try {
         await registerVaultSelection(options.registerVault, vaultPath, { verifyAvailability: false })
       } catch (err) {
@@ -193,6 +201,12 @@ function useCreateVaultHandler(
   setError: SetError,
 ) {
   return useCallback(async () => {
+    if (usesMobileVaultSetup()) {
+      setError(null)
+      await createTemplateVault(await mobileTemplateVaultTarget())
+      return
+    }
+
     const parentPath = await pickFolderWithOnboardingError({
       action: 'Could not choose a parent folder',
       setError,
@@ -208,11 +222,17 @@ function useCreateEmptyVaultHandler(
   options: CreateEmptyVaultHandlerOptions,
 ) {
   return useCallback(async () => {
-    const path = await pickFolderWithOnboardingError({
-      action: 'Could not choose where to create your vault',
-      setError: options.setError,
-      title: 'Choose where to create your vault',
-    })
+    let path: string | null
+    if (usesMobileVaultSetup()) {
+      options.setError(null)
+      path = await mobileEmptyVaultTarget()
+    } else {
+      path = await pickFolderWithOnboardingError({
+        action: 'Could not choose where to create your vault',
+        setError: options.setError,
+        title: 'Choose where to create your vault',
+      })
+    }
     if (!path) return
 
     try {
