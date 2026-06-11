@@ -59,7 +59,7 @@ describe('createTauriGitHttp', () => {
       body: body(),
     })
 
-    const sent = pluginFetch.mock.calls[0][1].body as Uint8Array
-    expect(Array.from(sent)).toEqual([10, 11, 12])
+    const sent = pluginFetch.mock.calls[0][1].body as ArrayBuffer
+    expect(Array.from(new Uint8Array(sent))).toEqual([10, 11, 12])
   })
 })

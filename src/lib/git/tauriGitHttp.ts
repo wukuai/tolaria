@@ -11,7 +11,7 @@ import type { GitHttpRequest, GitHttpResponse, HttpClient } from 'isomorphic-git
 
 async function collectRequestBody(
   body: GitHttpRequest['body'],
-): Promise<Uint8Array | undefined> {
+): Promise<ArrayBuffer | undefined> {
   if (!body) return undefined
 
   const chunks: Uint8Array[] = []
@@ -27,7 +27,11 @@ async function collectRequestBody(
     merged.set(chunk, offset)
     offset += chunk.byteLength
   }
-  return merged
+  return merged.buffer
+}
+
+async function* singleChunk(bytes: Uint8Array): AsyncIterableIterator<Uint8Array> {
+  yield bytes
 }
 
 function headerRecord(headers: Headers): Record<string, string> {
@@ -55,7 +59,7 @@ export function createTauriGitHttp(): HttpClient {
         statusCode: response.status,
         statusMessage: response.statusText,
         headers: headerRecord(response.headers),
-        body: [responseBytes],
+        body: singleChunk(responseBytes),
       }
     },
   }
