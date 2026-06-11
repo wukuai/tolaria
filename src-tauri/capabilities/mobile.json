@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/mobile-schema.json",
   "identifier": "mobile",
-  "description": "permissions for iOS/iPadOS",
+  "description": "permissions for iOS/iPadOS and Android",
   "windows": [
     "main"
   ],
@@ -10,6 +10,22 @@
     "core:default",
     "core:window:allow-close",
     "core:window:allow-set-title",
-    "dialog:default"
+    "dialog:default",
+    "fs:allow-exists",
+    "fs:allow-mkdir",
+    "fs:allow-read-dir",
+    "fs:allow-read-file",
+    "fs:allow-remove",
+    "fs:allow-stat",
+    "fs:allow-write-file",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$APPDATA" },
+        { "path": "$APPDATA/**" },
+        { "path": "$DOCUMENT" },
+        { "path": "$DOCUMENT/**" }
+      ]
+    }
   ]
 }

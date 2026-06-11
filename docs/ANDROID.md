@@ -81,6 +81,21 @@ authenticates HTTPS remotes with a **Personal Access Token** supplied through
 isomorphic-git's `onAuth` callback. A mobile token-entry screen is the main
 remaining UI piece before sync is end-to-end usable on a phone.
 
+## Build notes (pitfalls already solved)
+
+- **No OpenSSL on Android.** `sentry` must use its `rustls` transport
+  (`default-features = false` in `src-tauri/Cargo.toml`); the default
+  `native-tls` transport tries to link system OpenSSL, which does not exist in
+  the Android sysroot and fails the cross-compile.
+- **Plugin version pairing.** The Tauri CLI refuses to build when a Rust plugin
+  crate and its npm package are on different minor versions (e.g.
+  `tauri-plugin-fs` vs `@tauri-apps/plugin-fs`). Fix with
+  `cargo update -p tauri-plugin-fs` after bumping the npm side.
+- **Mobile fs plugin.** `tauri-plugin-fs` is a mobile-only Rust dependency,
+  registered in `setup_mobile_plugins` (`src-tauri/src/lib.rs`) and scoped in
+  `src-tauri/capabilities/mobile.json` to `$APPDATA` and `$DOCUMENT` so the
+  in-process git engine can reach the vault.
+
 ## Known limitations / remaining work
 
 - isomorphic-git's merge support is limited; merge conflicts are surfaced but not
@@ -90,5 +105,5 @@ remaining UI piece before sync is end-to-end usable on a phone.
   dependencies (`reqwest`→`ring`, `sentry`) compile for Android only with the
   NDK's clang/sysroot. The mobile *product* surface needs no Rust-side HTTP (git
   runs in the WebView), but the shared crate graph still must compile.
-- The build has not yet been validated end-to-end on a device; it requires the
-  Android SDK + NDK, which are not present in CI containers.
+- The APK has been built in CI-like containers (SDK 34 + NDK r27); on-device /
+  emulator QA is still outstanding.

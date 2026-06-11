@@ -1,6 +1,7 @@
 use crate::git::GitAddRemoteResult;
 use serde::Deserialize;
 
+#[cfg(desktop)]
 use super::expand_tilde;
 
 #[derive(Debug, Deserialize)]

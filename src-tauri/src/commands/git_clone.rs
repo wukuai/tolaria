@@ -1,3 +1,4 @@
+#[cfg(desktop)]
 use super::expand_tilde;
 
 #[cfg(desktop)]

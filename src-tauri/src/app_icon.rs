@@ -1,5 +1,3 @@
-use tauri::Manager;
-
 const LIGHT_ICON_BYTES: &[u8] = include_bytes!("../icons/512x512.png");
 const DARK_ICON_BYTES: &[u8] = include_bytes!("../icons/512x512-dark.png");
 
@@ -31,6 +29,13 @@ pub fn update_app_icon_for_theme(
     theme_mode: &str,
 ) -> Result<(), String> {
     let icon_bytes = AppIconMode::parse(theme_mode)?.png_bytes();
+    apply_window_icons(app_handle, icon_bytes)
+}
+
+#[cfg(desktop)]
+fn apply_window_icons(app_handle: &tauri::AppHandle, icon_bytes: &[u8]) -> Result<(), String> {
+    use tauri::Manager;
+
     let image = tauri::image::Image::from_bytes(icon_bytes)
         .map_err(|err| format!("Failed to decode app icon: {err}"))?;
 
@@ -39,6 +44,12 @@ pub fn update_app_icon_for_theme(
             .set_icon(image.clone())
             .map_err(|err| format!("Failed to update window icon: {err}"))?;
     }
+    Ok(())
+}
+
+#[cfg(mobile)]
+fn apply_window_icons(_app_handle: &tauri::AppHandle, _icon_bytes: &[u8]) -> Result<(), String> {
+    // Mobile launcher icons are fixed at install time; theme switches are a no-op.
     Ok(())
 }
 

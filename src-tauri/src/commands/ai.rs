@@ -1,4 +1,3 @@
-#[cfg(desktop)]
 use crate::ai_agents::{AiAgentStreamRequest, AiAgentsStatus};
 #[cfg(desktop)]
 use crate::ai_models::{AiModelProviderTestRequest, AiModelStreamRequest};
@@ -219,28 +218,8 @@ pub fn check_claude_cli() -> ClaudeCliStatus {
 #[cfg(mobile)]
 #[tauri::command]
 pub fn get_ai_agents_status() -> AiAgentsStatus {
-    AiAgentsStatus {
-        claude_code: crate::ai_agents::AiAgentAvailability {
-            installed: false,
-            version: None,
-        },
-        codex: crate::ai_agents::AiAgentAvailability {
-            installed: false,
-            version: None,
-        },
-        opencode: crate::ai_agents::AiAgentAvailability {
-            installed: false,
-            version: None,
-        },
-        pi: crate::ai_agents::AiAgentAvailability {
-            installed: false,
-            version: None,
-        },
-        gemini: crate::ai_agents::AiAgentAvailability {
-            installed: false,
-            version: None,
-        },
-    }
+    // No CLI agent can be spawned on mobile, so every agent reports "not installed".
+    AiAgentsStatus::default()
 }
 
 #[cfg(mobile)]

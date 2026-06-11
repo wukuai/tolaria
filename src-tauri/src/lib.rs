@@ -45,11 +45,9 @@ mod window_state;
 use std::ffi::OsStr;
 use std::process::Command;
 
-#[cfg(desktop)]
 use std::path::{Path, PathBuf};
 #[cfg(desktop)]
 use std::process::Child;
-#[cfg(desktop)]
 use std::sync::Mutex;
 
 #[cfg(windows)]
@@ -73,7 +71,6 @@ fn suppress_windows_console(_command: &mut Command) {}
 #[cfg(desktop)]
 struct WsBridgeChild(Mutex<Option<Child>>);
 
-#[cfg(desktop)]
 struct AllowedAssetScopeRoots(Mutex<Vec<PathBuf>>);
 
 #[cfg(desktop)]
@@ -335,7 +332,7 @@ fn setup_desktop_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error:
     Ok(())
 }
 
-#[cfg(debug_assertions)]
+#[cfg(all(desktop, debug_assertions))]
 fn show_debug_main_window(app: &mut tauri::App) {
     use tauri::Manager;
 
@@ -347,7 +344,7 @@ fn show_debug_main_window(app: &mut tauri::App) {
     }
 }
 
-#[cfg(not(debug_assertions))]
+#[cfg(all(desktop, not(debug_assertions)))]
 fn show_debug_main_window(_app: &mut tauri::App) {}
 
 fn should_use_native_desktop_menu(target_os: &str) -> bool {
@@ -404,11 +401,22 @@ fn setup_macos_webview_shortcut_prevention(
     Ok(())
 }
 
+#[cfg(mobile)]
+fn setup_mobile_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    // The in-process git engine (src/lib/git) reads and writes the vault
+    // through the fs plugin on mobile; desktop git runs in Rust instead.
+    app.handle().plugin(tauri_plugin_fs::init())?;
+    Ok(())
+}
+
 fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     setup_common_plugins(app)?;
 
     #[cfg(desktop)]
     setup_desktop_plugins(app)?;
+
+    #[cfg(mobile)]
+    setup_mobile_plugins(app)?;
 
     if telemetry::init_sentry_from_settings() {
         log::info!("Sentry initialized (crash reporting enabled)");
@@ -423,7 +431,6 @@ fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[cfg(desktop)]
 fn vault_asset_scope_roots(vault_path: &Path) -> Result<Vec<PathBuf>, String> {
     let canonical_vault_path = std::fs::canonicalize(vault_path).map_err(|e| {
         format!(
@@ -439,7 +446,6 @@ fn vault_asset_scope_roots(vault_path: &Path) -> Result<Vec<PathBuf>, String> {
     Ok(roots)
 }
 
-#[cfg(desktop)]
 fn missing_asset_scope_roots(
     allowed_roots: &[PathBuf],
     requested_roots: &[PathBuf],
@@ -451,7 +457,6 @@ fn missing_asset_scope_roots(
         .collect()
 }
 
-#[cfg(desktop)]
 pub(crate) fn sync_vault_asset_scope(
     app_handle: &tauri::AppHandle,
     vault_path: &Path,
@@ -610,10 +615,11 @@ pub fn run() {
     #[cfg(desktop)]
     let builder = with_desktop_entry_plugins(builder);
 
+    let builder = builder.manage(AllowedAssetScopeRoots(Mutex::new(Vec::new())));
+
     #[cfg(desktop)]
     let builder = builder
         .manage(WsBridgeChild(Mutex::new(None)))
-        .manage(AllowedAssetScopeRoots(Mutex::new(Vec::new())))
         .manage(window_state::MainWindowFrameState::default())
         .manage(vault_watcher::VaultWatcherState::new());
 

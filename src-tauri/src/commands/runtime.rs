@@ -2,6 +2,7 @@ fn should_use_external_media_preview_for_appimage(is_linux_appimage: bool) -> bo
     is_linux_appimage
 }
 
+#[cfg(any(desktop, test))]
 fn map_print_result<E: std::fmt::Display>(result: Result<(), E>) -> Result<(), String> {
     result.map_err(|error| format!("Failed to open the system print dialog: {error}"))
 }
@@ -21,9 +22,17 @@ pub fn should_use_external_media_preview() -> bool {
     should_use_external_media_preview_for_appimage(linux_appimage_running())
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub fn print_current_webview(window: tauri::WebviewWindow) -> Result<(), String> {
     map_print_result(window.print())
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub fn print_current_webview(_window: tauri::WebviewWindow) -> Result<(), String> {
+    // WebviewWindow::print only exists on desktop; mobile WebViews print via the OS share sheet.
+    Err("Printing is not available in the mobile app".to_string())
 }
 
 #[cfg(test)]

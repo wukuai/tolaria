@@ -23,13 +23,13 @@ pub enum AiAgentPermissionMode {
     PowerUser,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct AiAgentAvailability {
     pub installed: bool,
     pub version: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct AiAgentsStatus {
     pub claude_code: AiAgentAvailability,
     pub codex: AiAgentAvailability,

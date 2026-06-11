@@ -3,6 +3,7 @@ use crate::git::{
     PulseCommit,
 };
 
+#[cfg(desktop)]
 use super::expand_tilde;
 
 type VaultPathArg = String;

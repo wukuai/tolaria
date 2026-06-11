@@ -36,12 +36,24 @@ tauri-plugin-updater = "2.10.0"
 tauri-plugin-process = "2.3.1"
 tauri-plugin-opener = "2"
 tauri-plugin-prevent-default = "4.0.4"
-sentry = "0.37"
+# rustls transport: native-tls would pull OpenSSL, which has no Android sysroot build.
+sentry = { version = "0.37", default-features = false, features = [
+  "backtrace",
+  "contexts",
+  "debug-images",
+  "panic",
+  "release-health",
+  "reqwest",
+  "rustls",
+] }
 uuid = { version = "1", features = ["v4"] }
 tempfile = "3"
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 tauri-plugin-deep-link = "2.4.9"
 tauri-plugin-single-instance = { version = "2.4.2", features = ["deep-link"] }
+
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+tauri-plugin-fs = "2.5"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6.3"
