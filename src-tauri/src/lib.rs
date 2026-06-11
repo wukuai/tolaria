@@ -31,6 +31,7 @@ mod opencode_discovery;
 mod opencode_events;
 pub mod pi_cli;
 mod pi_config;
+pub mod platform_dirs;
 mod pi_discovery;
 mod pi_events;
 pub mod search;
@@ -406,6 +407,23 @@ fn setup_mobile_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error::
     // The in-process git engine (src/lib/git) reads and writes the vault
     // through the fs plugin on mobile; desktop git runs in Rust instead.
     app.handle().plugin(tauri_plugin_fs::init())?;
+    setup_mobile_base_dirs(app)?;
+    Ok(())
+}
+
+/// The `dirs` crate cannot resolve base directories inside the Android/iOS
+/// app sandbox, so settings, the vault list, the default vault location, and
+/// the scan cache must use paths from Tauri's resolver instead.
+#[cfg(mobile)]
+fn setup_mobile_base_dirs(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    use tauri::Manager;
+
+    let resolver = app.path();
+    let data_dir = resolver.app_data_dir()?;
+    platform_dirs::set_base_dir_overrides(resolver.app_config_dir()?, data_dir.join("Documents"));
+    if std::env::var_os("LAPUTA_CACHE_DIR").is_none() {
+        std::env::set_var("LAPUTA_CACHE_DIR", resolver.app_cache_dir()?.join("vault-scan"));
+    }
     Ok(())
 }
 

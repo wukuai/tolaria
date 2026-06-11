@@ -35,7 +35,8 @@ pub struct VaultList {
 }
 
 fn app_config_dir() -> Result<PathBuf, String> {
-    dirs::config_dir().ok_or_else(|| "Could not determine config directory".to_string())
+    crate::platform_dirs::config_dir()
+        .ok_or_else(|| "Could not determine config directory".to_string())
 }
 
 fn preferred_app_config_path(file_name: &str) -> Result<PathBuf, String> {

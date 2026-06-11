@@ -7,7 +7,7 @@ pub const GETTING_STARTED_REPO_URL: &str =
 
 /// Default location for the Getting Started vault.
 pub fn default_vault_path() -> Result<PathBuf, String> {
-    dirs::document_dir()
+    crate::platform_dirs::document_dir()
         .map(|d| d.join("Getting Started"))
         .ok_or_else(|| "Could not determine Documents directory".to_string())
 }

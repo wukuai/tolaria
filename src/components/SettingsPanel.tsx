@@ -67,6 +67,7 @@ import {
   type AllNotesFileVisibility,
 } from '../utils/allNotesFileVisibility'
 import { DEFAULT_NOTE_WIDTH_MODE, normalizeNoteWidthMode } from '../utils/noteWidth'
+import { generateUuid } from '../utils/uuid'
 import {
   DEFAULT_DATE_DISPLAY_FORMAT,
   normalizeDateDisplayFormat,
@@ -244,7 +245,7 @@ function resolveTelemetryConsent(settings: Settings, draft: SettingsDraft): bool
 
 function resolveAnonymousId(settings: Settings, draft: SettingsDraft): string | null {
   if (draft.crashReporting || draft.analytics) {
-    return settings.anonymous_id ?? crypto.randomUUID()
+    return settings.anonymous_id ?? generateUuid()
   }
 
   return settings.anonymous_id

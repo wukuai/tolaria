@@ -7,6 +7,7 @@ import type { useAiAgentsStatus } from '../hooks/useAiAgentsStatus'
 import type { useOnboarding } from '../hooks/useOnboarding'
 import type { useVaultSwitcher } from '../hooks/useVaultSwitcher'
 import type { Settings } from '../types'
+import { generateUuid } from '../utils/uuid'
 import type { NoteWindowParams } from '../utils/windowMode'
 
 type OnboardingState = ReturnType<typeof useOnboarding>
@@ -110,16 +111,17 @@ function AiAgentsOnboardingView({
 export function StartupScreen(params: StartupScreenParams) {
   if (shouldShowTelemetryConsent(params)) {
     return (
+      <>
       <TelemetryConsentDialog
         onAccept={() => {
-          const id = crypto.randomUUID()
+          const id = generateUuid()
           params.saveSettings({
             ...params.settings,
             telemetry_consent: true,
             crash_reporting_enabled: true,
             analytics_enabled: true,
             anonymous_id: id,
-          })
+          }).catch((error) => params.setToastMessage(`Failed to save settings: ${error}`))
         }}
         onDecline={() => {
           params.saveSettings({
@@ -128,9 +130,11 @@ export function StartupScreen(params: StartupScreenParams) {
             crash_reporting_enabled: false,
             analytics_enabled: false,
             anonymous_id: null,
-          })
+          }).catch((error) => params.setToastMessage(`Failed to save settings: ${error}`))
         }}
       />
+      <Toast message={params.toastMessage} onDismiss={() => params.setToastMessage(null)} />
+      </>
     )
   }
 
