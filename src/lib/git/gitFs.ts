@@ -107,6 +107,8 @@ export interface GitFsPromises {
   rmdir(path: string): Promise<void>
   stat(path: string): Promise<GitStat>
   lstat(path: string): Promise<GitStat>
+  readlink(path: string): Promise<string>
+  symlink(target: string, path: string): Promise<void>
 }
 
 function toBytes(data: Uint8Array | string): Uint8Array {
@@ -139,6 +141,12 @@ export function createGitFs(backend: GitFsBackend): { promises: GitFsPromises } 
     rmdir: (path: string) => withNotFound(backend, path, () => backend.rmdir(path)),
     stat: (path: string) => withNotFound(backend, path, async () => toGitStat(await backend.stat(path))),
     lstat: (path: string) => withNotFound(backend, path, async () => toGitStat(await backend.stat(path))),
+    // isomorphic-git binds all ten fs methods up front, so these must exist
+    // even though the device backend has no symlink support. Mirror git's
+    // `core.symlinks=false`: store the link target as a plain file.
+    readlink: (path: string) =>
+      withNotFound(backend, path, async () => decoder.decode(await backend.readFile(path))),
+    symlink: (target: string, path: string) => backend.writeFile(path, encoder.encode(target)),
   }
   return { promises }
 }

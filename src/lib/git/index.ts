@@ -87,7 +87,16 @@ export interface MobileGitDeps {
   handlers: Record<string, Handler>
 }
 
+/** isomorphic-git requires a Buffer global, which WebViews do not provide. */
+async function ensureBufferPolyfill(): Promise<void> {
+  if (typeof (globalThis as { Buffer?: unknown }).Buffer === 'undefined') {
+    const { Buffer } = await import('buffer')
+    ;(globalThis as { Buffer?: unknown }).Buffer = Buffer
+  }
+}
+
 async function buildNativeContext(dir: string): Promise<GitContext> {
+  await ensureBufferPolyfill()
   const [{ createTauriGitFs }, { createTauriGitHttp }] = await Promise.all([
     import('./tauriGitFs'),
     import('./tauriGitHttp'),
